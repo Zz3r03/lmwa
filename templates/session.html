@@ -1,0 +1,55 @@
+<!-- templates/session.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+</head>
+<body>
+    <ul id="messages"></ul>
+    <input id="username" placeholder="Username" autocomplete="off">
+    <input id="input" placeholder="Message" autocomplete="off"><button onclick="sendMessage()">Send</button>
+    <input type="file" id="image" accept="image/*" onchange="uploadImage()"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+
+        socket.on('connect', function() {
+            socket.emit('username', document.getElementById('username').value);
+        });
+
+        socket.on('receive_message', function(data) {
+            var ul = document.getElementById('messages');
+            var li = document.createElement('li');
+            li.appendChild(document.createTextNode(data.username + ': ' + data.message));
+            ul.appendChild(li);
+        });
+
+        socket.on('receive_image', function(data) {
+            var ul = document.getElementById('messages');
+            var li = document.createElement('li');
+            li.appendChild(document.createTextNode(data.username + ': '));
+            var img = document.createElement('img');
+            img.src = data.img_url;
+            li.appendChild(img);
+            ul.appendChild(li);
+        });
+
+        function sendMessage() {
+            var input = document.getElementById('input');
+            socket.emit('send_message', input.value);
+            input.value = '';
+        }
+
+        function uploadImage() {
+            var fileInput = document.getElementById('image');
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onloadend = function() {
+                socket.emit('send_image', {filename: file.name, file: reader.result});
+            }
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>
