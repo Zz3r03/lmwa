@@ -59,9 +59,6 @@ def handle_image(data):
     
     with open(MESSAGE_HISTORY, 'w') as f:
         json.dump(messages, f)
-        
-    # Print the emitted data
-    print({'username': session.get('username'), 'img_url': img_url})
     
     emit('receive_image', {'username': session.get('username'), 'img_url': img_url}, broadcast=True)
 
